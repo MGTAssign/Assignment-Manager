@@ -3,7 +3,8 @@ function login() {
   const password = document.getElementById("password").value;
 
   auth.signInWithEmailAndPassword(email, password)
-    .then(() => {
+    .then((userCredential) => {
+      // successful login → go to main page
       window.location.href = "index.html";
     })
     .catch((error) => {
