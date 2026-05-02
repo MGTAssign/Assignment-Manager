@@ -1,20 +1,35 @@
 <!DOCTYPE html>
-<p id="authStatus"></p>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Assignment Tracker</title>
   <link rel="stylesheet" href="style.css">
+
+  <!-- Firebase (required for login/logout) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+
+  <!-- Your Firebase config file -->
+  <script src="firebase.js"></script>
 </head>
+
 <body>
 
   <div class="container">
+
     <h1>Assignment Tracker</h1>
 
-    <button onclick="logout()">Logout</button>
+    <!-- 🔐 LOGIN STATUS + BUTTONS -->
+    <div class="toolbar">
+      <p id="authStatus">Checking login...</p>
+
+      <button onclick="window.location.href='login.html'">Login</button>
+      <button onclick="logout()">Logout</button>
+    </div>
 
     <form id="assignmentForm">
+
       <input type="text" id="title" placeholder="Assignment Name" required>
       <input type="text" id="instructor" placeholder="Instructor Name" required>
 
@@ -40,6 +55,7 @@
 
       <tbody id="assignmentList"></tbody>
     </table>
+
   </div>
 
   <script src="script.js"></script>
