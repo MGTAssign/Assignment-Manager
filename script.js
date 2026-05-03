@@ -1,31 +1,38 @@
 const form = document.getElementById("assignmentForm");
 const list = document.getElementById("assignmentList");
 const authStatus = document.getElementById("authStatus");
+const guestMessage = document.getElementById("guestMessage");
 
 let currentUser = null;
 
 // 🔐 Track login state
-auth.onAuthStateChanged(user => {
+auth.onAuthStateChanged((user) => {
   if (user) {
     currentUser = user;
     authStatus.innerText = "Logged in as: " + user.email;
+
+    form.style.display = "block";
+    guestMessage.style.display = "none";
   } else {
     currentUser = null;
     authStatus.innerText = "Viewing as guest";
+
+    form.style.display = "none";
+    guestMessage.style.display = "block";
   }
 
   loadAssignments();
 });
 
-// 📥 Load assignments from Firestore (LIVE)
+// 📥 Load assignments (REAL-TIME)
 function loadAssignments() {
   db.collection("assignments")
     .orderBy("dueDate")
-    .onSnapshot(snapshot => {
+    .onSnapshot((snapshot) => {
 
       list.innerHTML = "";
 
-      snapshot.forEach(doc => {
+      snapshot.forEach((doc) => {
         const a = doc.data();
         const id = doc.id;
 
@@ -58,7 +65,7 @@ form.addEventListener("submit", (e) => {
   e.preventDefault();
 
   if (!currentUser) {
-    alert("Login required to add assignments.");
+    alert("Login required.");
     return;
   }
 
@@ -90,7 +97,7 @@ function saveAssignment(fileName, fileData) {
   form.reset();
 }
 
-// ❌ Delete assignment
+// ❌ Delete
 function deleteAssignment(id) {
   db.collection("assignments").doc(id).delete();
 }
