@@ -1,62 +1,101 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Assignment Tracker</title>
+const form = document.getElementById("assignmentForm");
+const list = document.getElementById("assignmentList");
+const authStatus = document.getElementById("authStatus");
 
-  <link rel="stylesheet" href="style.css">
+let currentUser = null;
 
-  <!-- Firebase (ONLY ONCE) -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+// 🔐 Watch login state
+auth.onAuthStateChanged((user) => {
+  if (user) {
+    currentUser = user;
+    authStatus.innerText = "Logged in as: " + user.email;
+  } else {
+    currentUser = null;
+    authStatus.innerText = "Viewing as guest";
+  }
 
-  <!-- Your Firebase config -->
-  <script src="firebase.js"></script>
-</head>
+  loadAssignments();
+});
 
-<body>
+// 📥 Load assignments (real-time)
+function loadAssignments() {
+  db.collection("assignments")
+    .orderBy("dueDate")
+    .onSnapshot((snapshot) => {
 
-  <div class="container">
+      list.innerHTML = "";
 
-    <h1>Assignment Tracker</h1>
+      snapshot.forEach((doc) => {
+        const a = doc.data();
+        const id = doc.id;
 
-    <!-- LOGIN STATUS -->
-    <div class="toolbar">
-      <p id="authStatus">Checking login...</p>
+        list.innerHTML += `
+          <tr>
+            <td>${a.title}</td>
+            <td>${a.instructor}</td>
+            <td>${a.dateGiven}</td>
+            <td>${a.dueDate}</td>
 
-      <button onclick="window.location.href='login.html'">Login</button>
-      <button onclick="logout()">Logout</button>
-    </div>
+            <td>
+              ${a.fileName 
+                ? `<a href="${a.fileData}" download="${a.fileName}">Download</a>` 
+                : "No file"}
+            </td>
 
-    <form id="assignmentForm">
-      <input type="text" id="title" placeholder="Assignment Name" required>
-      <input type="text" id="instructor" placeholder="Instructor Name" required>
-      <input type="date" id="dateGiven" required>
-      <input type="date" id="dueDate" required>
-      <input type="file" id="fileUpload">
+            <td>
+              ${currentUser 
+                ? `<button onclick="deleteAssignment('${id}')">Delete</button>` 
+                : ""}
+            </td>
+          </tr>
+        `;
+      });
+    });
+}
 
-      <button type="submit">Add Assignment</button>
-    </form>
+// ➕ Add assignment
+form.addEventListener("submit", (e) => {
+  e.preventDefault();
 
-    <table>
-      <thead>
-        <tr>
-          <th>Assignment</th>
-          <th>Instructor</th>
-          <th>Date Given</th>
-          <th>Due Date</th>
-          <th>File</th>
-          <th>Action</th>
-        </tr>
-      </thead>
+  if (!currentUser) {
+    alert("You must be logged in to add assignments.");
+    return;
+  }
 
-      <tbody id="assignmentList"></tbody>
-    </table>
+  const fileInput = document.getElementById("fileUpload");
+  const file = fileInput.files[0];
 
-  </div>
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function () {
+      saveAssignment(file.name, reader.result);
+    };
+    reader.readAsDataURL(file);
+  } else {
+    saveAssignment(null, null);
+  }
+});
 
-  <script src="script.js"></script>
+// 💾 Save to Firestore
+function saveAssignment(fileName, fileData) {
+  db.collection("assignments").add({
+    title: document.getElementById("title").value,
+    instructor: document.getElementById("instructor").value,
+    dateGiven: document.getElementById("dateGiven").value,
+    dueDate: document.getElementById("dueDate").value,
+    fileName: fileName,
+    fileData: fileData
+  });
 
-</body>
-</html>
+  form.reset();
+}
+
+// ❌ Delete assignment
+function deleteAssignment(id) {
+  db.collection("assignments").doc(id).delete();
+}
+
+// 🚪 Logout
+function logout() {
+  auth.signOut();
+}
