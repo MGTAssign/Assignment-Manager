@@ -1,68 +1,21 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Assignment Tracker</title>
+console.log("SCRIPT LOADED ✔");
 
-  <link rel="stylesheet" href="style.css">
+console.log("AUTH OBJECT:", typeof auth);
+console.log("DB OBJECT:", typeof db);
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+auth.onAuthStateChanged((user) => {
+  console.log("AUTH TRIGGERED:", user);
 
-  <!-- Firebase Config -->
-  <script src="firebase.js"></script>
-</head>
+  const authStatus = document.getElementById("authStatus");
 
-<body>
+  if (!authStatus) {
+    console.error("authStatus element missing");
+    return;
+  }
 
-  <div class="container">
-
-    <h1>Assignment Tracker</h1>
-
-    <!-- 🔐 LOGIN STATUS -->
-    <div class="toolbar">
-      <p id="authStatus">Checking login...</p>
-
-      <button onclick="window.location.href='login.html'">Login</button>
-      <button onclick="logout()">Logout</button>
-    </div>
-
-    <!-- 👇 MESSAGE FOR GUESTS -->
-    <p id="guestMessage" style="color:red;">Login to add assignments</p>
-
-    <!-- ➕ FORM -->
-    <form id="assignmentForm">
-      <input type="text" id="title" placeholder="Assignment Name" required>
-      <input type="text" id="instructor" placeholder="Instructor Name" required>
-      <input type="date" id="dateGiven" required>
-      <input type="date" id="dueDate" required>
-      <input type="file" id="fileUpload">
-
-      <button type="submit">Add Assignment</button>
-    </form>
-
-    <!-- 📋 TABLE -->
-    <table>
-      <thead>
-        <tr>
-          <th>Assignment</th>
-          <th>Instructor</th>
-          <th>Date Given</th>
-          <th>Due Date</th>
-          <th>File</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-
-      <tbody id="assignmentList"></tbody>
-    </table>
-
-  </div>
-
-  <script src="script.js"></script>
-
-</body>
-</html>
+  if (user) {
+    authStatus.innerText = "Logged in as: " + user.email;
+  } else {
+    authStatus.innerText = "Viewing as guest";
+  }
+});
