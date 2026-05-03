@@ -33,7 +33,6 @@ function loadAssignments() {
   db.collection("assignments")
     .orderBy("dueDate")
     .onSnapshot((snapshot) => {
-
       list.innerHTML = "";
 
       snapshot.forEach((doc) => {
@@ -46,13 +45,11 @@ function loadAssignments() {
             <td>${a.instructor}</td>
             <td>${a.dateGiven}</td>
             <td>${a.dueDate}</td>
-
             <td>
               ${a.fileName
                 ? `<a href="${a.fileData}" download="${a.fileName}">Download</a>`
                 : "No file"}
             </td>
-
             <td>
               ${currentUser
                 ? `<button onclick="deleteAssignment('${id}')">Delete</button>`
