@@ -1,4 +1,4 @@
-console.log("Firebase loading...");
+console.log("🔥 firebase.js LOADED");
 
 const firebaseConfig = {
   apiKey: "AIzaSyXXXXXX-REAL-KEY",
