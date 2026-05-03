@@ -7,24 +7,22 @@
 
   <link rel="stylesheet" href="style.css">
 
-  <!-- Firebase -->
+  <!-- Firebase (COMPAT VERSION - MUST STAY IN THIS ORDER) -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
-  <!-- Firebase Config -->
+  <!-- Your Firebase config -->
   <script src="firebase.js"></script>
 </head>
 
 <body>
 
-  <!-- YOUR PAGE CONTENT HERE -->
-
   <div class="container">
     <h1>Assignment Tracker</h1>
 
     <div class="toolbar">
-      <p id="authStatus">Checking login...</p>
+      <p id="authStatus"></p>
       <button onclick="window.location.href='login.html'">Login</button>
       <button onclick="logout()">Logout</button>
     </div>
@@ -51,12 +49,10 @@
           <th>Action</th>
         </tr>
       </thead>
-
       <tbody id="assignmentList"></tbody>
     </table>
   </div>
 
-  <!-- IMPORTANT: scripts at the bottom -->
   <script src="script.js"></script>
 
 </body>
