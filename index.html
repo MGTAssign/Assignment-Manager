@@ -1,106 +1,63 @@
-console.log("SCRIPT LOADED ✔");
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Assignment Tracker</title>
 
-const form = document.getElementById("assignmentForm");
-const list = document.getElementById("assignmentList");
-const authStatus = document.getElementById("authStatus");
-const guestMessage = document.getElementById("guestMessage");
+  <link rel="stylesheet" href="style.css">
 
-let currentUser = null;
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
-// 🔐 AUTH STATE
-auth.onAuthStateChanged((user) => {
-  console.log("AUTH TRIGGERED:", user);
+  <!-- Firebase Config -->
+  <script src="firebase.js"></script>
+</head>
 
-  currentUser = user;
+<body>
 
-  if (user) {
-    authStatus.innerText = "Logged in as: " + user.email;
+  <!-- YOUR PAGE CONTENT HERE -->
 
-    if (form) form.style.display = "block";
-    if (guestMessage) guestMessage.style.display = "none";
-  } else {
-    authStatus.innerText = "Viewing as guest";
+  <div class="container">
+    <h1>Assignment Tracker</h1>
 
-    if (form) form.style.display = "none";
-    if (guestMessage) guestMessage.style.display = "block";
-  }
+    <div class="toolbar">
+      <p id="authStatus">Checking login...</p>
+      <button onclick="window.location.href='login.html'">Login</button>
+      <button onclick="logout()">Logout</button>
+    </div>
 
-  loadAssignments();
-});
+    <p id="guestMessage" style="color:red;">Login to add assignments</p>
 
-// 📥 LOAD ASSIGNMENTS
-function loadAssignments() {
-  db.collection("assignments")
-    .orderBy("dueDate")
-    .onSnapshot((snapshot) => {
+    <form id="assignmentForm">
+      <input type="text" id="title" placeholder="Assignment Name" required>
+      <input type="text" id="instructor" placeholder="Instructor Name" required>
+      <input type="date" id="dateGiven" required>
+      <input type="date" id="dueDate" required>
+      <input type="file" id="fileUpload">
+      <button type="submit">Add Assignment</button>
+    </form>
 
-      list.innerHTML = "";
+    <table>
+      <thead>
+        <tr>
+          <th>Assignment</th>
+          <th>Instructor</th>
+          <th>Date Given</th>
+          <th>Due Date</th>
+          <th>File</th>
+          <th>Action</th>
+        </tr>
+      </thead>
 
-      snapshot.forEach((doc) => {
-        const a = doc.data();
-        const id = doc.id;
+      <tbody id="assignmentList"></tbody>
+    </table>
+  </div>
 
-        list.innerHTML += `
-          <tr>
-            <td>${a.title}</td>
-            <td>${a.instructor}</td>
-            <td>${a.dateGiven}</td>
-            <td>${a.dueDate}</td>
+  <!-- IMPORTANT: scripts at the bottom -->
+  <script src="script.js"></script>
 
-            <td>
-              ${a.fileName
-                ? `<a href="${a.fileData}" download="${a.fileName}">Download</a>`
-                : "No file"}
-            </td>
-
-            <td>
-              ${currentUser
-                ? `<button onclick="deleteAssignment('${id}')">Delete</button>`
-                : ""}
-            </td>
-          </tr>
-        `;
-      });
-    });
-}
-
-// ➕ ADD ASSIGNMENT
-form.addEventListener("submit", (e) => {
-  e.preventDefault();
-
-  if (!currentUser) return;
-
-  const file = document.getElementById("fileUpload").files[0];
-
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = () => save(file.name, reader.result);
-    reader.readAsDataURL(file);
-  } else {
-    save(null, null);
-  }
-});
-
-// 💾 SAVE
-function save(fileName, fileData) {
-  db.collection("assignments").add({
-    title: document.getElementById("title").value,
-    instructor: document.getElementById("instructor").value,
-    dateGiven: document.getElementById("dateGiven").value,
-    dueDate: document.getElementById("dueDate").value,
-    fileName,
-    fileData
-  });
-
-  form.reset();
-}
-
-// ❌ DELETE
-window.deleteAssignment = function(id) {
-  db.collection("assignments").doc(id).delete();
-};
-
-// 🚪 LOGOUT
-window.logout = function() {
-  auth.signOut();
-};
+</body>
+</html>
