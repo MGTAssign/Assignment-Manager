@@ -5,26 +5,31 @@ const guestMessage = document.getElementById("guestMessage");
 
 let currentUser = null;
 
-// 🔐 Track login state
+// 🔐 Auth state (FIXED + STABLE)
 auth.onAuthStateChanged((user) => {
+  currentUser = user;
+
+  const form = document.getElementById("assignmentForm");
+  const guestMessage = document.getElementById("guestMessage");
+
+  // 🔥 RESET UI FIRST (prevents bug where form stays visible)
+  form.style.display = "none";
+  guestMessage.style.display = "none";
+
   if (user) {
-    currentUser = user;
     authStatus.innerText = "Logged in as: " + user.email;
 
     form.style.display = "block";
-    guestMessage.style.display = "none";
   } else {
-    currentUser = null;
     authStatus.innerText = "Viewing as guest";
 
-    form.style.display = "none";
     guestMessage.style.display = "block";
   }
 
   loadAssignments();
 });
 
-// 📥 Load assignments (REAL-TIME)
+// 📥 Load assignments (real-time)
 function loadAssignments() {
   db.collection("assignments")
     .orderBy("dueDate")
@@ -44,14 +49,14 @@ function loadAssignments() {
             <td>${a.dueDate}</td>
 
             <td>
-              ${a.fileName 
-                ? `<a href="${a.fileData}" download="${a.fileName}">Download</a>` 
+              ${a.fileName
+                ? `<a href="${a.fileData}" download="${a.fileName}">Download</a>`
                 : "No file"}
             </td>
 
             <td>
-              ${currentUser 
-                ? `<button onclick="deleteAssignment('${id}')">Delete</button>` 
+              ${currentUser
+                ? `<button onclick="deleteAssignment('${id}')">Delete</button>`
                 : ""}
             </td>
           </tr>
@@ -65,7 +70,7 @@ form.addEventListener("submit", (e) => {
   e.preventDefault();
 
   if (!currentUser) {
-    alert("Login required.");
+    alert("You must be logged in.");
     return;
   }
 
@@ -74,9 +79,11 @@ form.addEventListener("submit", (e) => {
 
   if (file) {
     const reader = new FileReader();
+
     reader.onload = function () {
       saveAssignment(file.name, reader.result);
     };
+
     reader.readAsDataURL(file);
   } else {
     saveAssignment(null, null);
@@ -97,7 +104,7 @@ function saveAssignment(fileName, fileData) {
   form.reset();
 }
 
-// ❌ Delete
+// ❌ Delete assignment
 function deleteAssignment(id) {
   db.collection("assignments").doc(id).delete();
 }
