@@ -4,28 +4,31 @@ body {
   padding: 0;
   min-height: 100vh;
 
-  /* 🔥 Background image */
+  /* 🔥 Background image (VISIBLE FIXED VERSION) */
   background-image: url("https://www.clubministries.org/wp-content/uploads/NAD-MG_Logo_Large.png");
-  background-size: contain;
+  background-size: 450px;   /* makes it actually visible */
   background-repeat: no-repeat;
   background-position: center;
   background-attachment: fixed;
-
-  position: relative;
 }
 
-/* 🔥 Faded overlay */
+/* 🔥 Soft fade overlay (NOT too strong) */
 body::before {
   content: "";
   position: fixed;
-  top: 0;
-  left: 0;
+  inset: 0;
 
-  width: 100%;
-  height: 100%;
+  background: rgba(255, 255, 255, 0.55); /* lighter so image shows */
+  z-index: 0;
+}
 
-  background: rgba(255, 255, 255, 0.75); /* adjust fade here */
-  z-index: -1;
+/* 📦 Make sure content is above background */
+.container,
+.toolbar,
+form,
+table {
+  position: relative;
+  z-index: 1;
 }
 
 /* 📦 Main container */
