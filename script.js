@@ -5,31 +5,38 @@ const guestMessage = document.getElementById("guestMessage");
 
 let currentUser = null;
 
-// 🔐 Auth state (FIXED + STABLE)
+// 🔐 AUTH STATE (FORCE FIX + DEBUG)
 auth.onAuthStateChanged((user) => {
+  console.log("AUTH STATE:", user);
+
   currentUser = user;
 
   const form = document.getElementById("assignmentForm");
   const guestMessage = document.getElementById("guestMessage");
 
-  // 🔥 RESET UI FIRST (prevents bug where form stays visible)
-  form.style.display = "none";
-  guestMessage.style.display = "none";
+  if (!form || !guestMessage) {
+    console.error("Missing HTML elements (form or guestMessage)");
+    return;
+  }
+
+  // 🔥 FORCE HIDE EVERYTHING FIRST (prevents stuck UI bug)
+  form.style.setProperty("display", "none", "important");
+  guestMessage.style.setProperty("display", "none", "important");
 
   if (user) {
     authStatus.innerText = "Logged in as: " + user.email;
 
-    form.style.display = "block";
+    form.style.setProperty("display", "block", "important");
   } else {
     authStatus.innerText = "Viewing as guest";
 
-    guestMessage.style.display = "block";
+    guestMessage.style.setProperty("display", "block", "important");
   }
 
   loadAssignments();
 });
 
-// 📥 Load assignments (real-time)
+// 📥 LOAD ASSIGNMENTS (REAL TIME)
 function loadAssignments() {
   db.collection("assignments")
     .orderBy("dueDate")
@@ -65,7 +72,7 @@ function loadAssignments() {
     });
 }
 
-// ➕ Add assignment
+// ➕ ADD ASSIGNMENT
 form.addEventListener("submit", (e) => {
   e.preventDefault();
 
@@ -90,7 +97,7 @@ form.addEventListener("submit", (e) => {
   }
 });
 
-// 💾 Save to Firestore
+// 💾 SAVE TO FIRESTORE
 function saveAssignment(fileName, fileData) {
   db.collection("assignments").add({
     title: document.getElementById("title").value,
@@ -104,12 +111,12 @@ function saveAssignment(fileName, fileData) {
   form.reset();
 }
 
-// ❌ Delete assignment
+// ❌ DELETE
 function deleteAssignment(id) {
   db.collection("assignments").doc(id).delete();
 }
 
-// 🚪 Logout
+// 🚪 LOGOUT
 function logout() {
   auth.signOut();
 }
