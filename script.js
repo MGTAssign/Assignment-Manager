@@ -1,60 +1,64 @@
-
-// Firebase auth state (NO redirect — public viewing allowed)
-firebase.auth().onAuthStateChanged((user) => {
-  const status = document.getElementById("authStatus");
-
-  if (status) {
-    status.innerText = user
-      ? "Logged in"
-      : "Viewing as guest (read-only)";
-  }
-});
-
-// Load saved assignments
 const form = document.getElementById("assignmentForm");
 const list = document.getElementById("assignmentList");
+const authStatus = document.getElementById("authStatus");
 
-let assignments = JSON.parse(localStorage.getItem("assignments")) || [];
+let currentUser = null;
 
-// Check if user can edit
-function canEdit() {
-  return firebase.auth().currentUser !== null;
+// 🔐 Track login state
+auth.onAuthStateChanged(user => {
+  if (user) {
+    currentUser = user;
+    authStatus.innerText = "Logged in as: " + user.email;
+  } else {
+    currentUser = null;
+    authStatus.innerText = "Viewing as guest";
+  }
+
+  loadAssignments();
+});
+
+// 📥 Load assignments from Firestore (LIVE)
+function loadAssignments() {
+  db.collection("assignments")
+    .orderBy("dueDate")
+    .onSnapshot(snapshot => {
+
+      list.innerHTML = "";
+
+      snapshot.forEach(doc => {
+        const a = doc.data();
+        const id = doc.id;
+
+        list.innerHTML += `
+          <tr>
+            <td>${a.title}</td>
+            <td>${a.instructor}</td>
+            <td>${a.dateGiven}</td>
+            <td>${a.dueDate}</td>
+
+            <td>
+              ${a.fileName 
+                ? `<a href="${a.fileData}" download="${a.fileName}">Download</a>` 
+                : "No file"}
+            </td>
+
+            <td>
+              ${currentUser 
+                ? `<button onclick="deleteAssignment('${id}')">Delete</button>` 
+                : ""}
+            </td>
+          </tr>
+        `;
+      });
+    });
 }
 
-// Render table
-function render() {
-  list.innerHTML = "";
-
-  assignments.forEach((a, index) => {
-    list.innerHTML += `
-      <tr>
-        <td>${a.title}</td>
-        <td>${a.instructor}</td>
-        <td>${a.dateGiven}</td>
-        <td>${a.dueDate}</td>
-
-        <td>
-          ${a.fileName 
-            ? `<a href="${a.fileData}" download="${a.fileName}">Download</a>` 
-            : "No file"}
-        </td>
-
-        <td>
-          <button onclick="removeItem(${index})">Delete</button>
-        </td>
-      </tr>
-    `;
-  });
-
-  localStorage.setItem("assignments", JSON.stringify(assignments));
-}
-
-// ADD assignment (LOCKED)
+// ➕ Add assignment
 form.addEventListener("submit", (e) => {
   e.preventDefault();
 
-  if (!canEdit()) {
-    alert("You must be logged in to add assignments");
+  if (!currentUser) {
+    alert("Login required to add assignments.");
     return;
   }
 
@@ -72,37 +76,26 @@ form.addEventListener("submit", (e) => {
   }
 });
 
+// 💾 Save to Firestore
 function saveAssignment(fileName, fileData) {
-  const newAssignment = {
+  db.collection("assignments").add({
     title: document.getElementById("title").value,
     instructor: document.getElementById("instructor").value,
     dateGiven: document.getElementById("dateGiven").value,
     dueDate: document.getElementById("dueDate").value,
-    fileName,
-    fileData
-  };
-
-  assignments.push(newAssignment);
-  form.reset();
-  render();
-}
-
-// DELETE (LOCKED)
-function removeItem(index) {
-  if (!canEdit()) {
-    alert("You must be logged in to delete assignments");
-    return;
-  }
-
-  assignments.splice(index, 1);
-  render();
-}
-
-// LOGOUT
-function logout() {
-  firebase.auth().signOut().then(() => {
-    location.reload();
+    fileName: fileName,
+    fileData: fileData
   });
+
+  form.reset();
 }
 
-render();
+// ❌ Delete assignment
+function deleteAssignment(id) {
+  db.collection("assignments").doc(id).delete();
+}
+
+// 🚪 Logout
+function logout() {
+  auth.signOut();
+}
