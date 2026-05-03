@@ -1,80 +1,5 @@
-Skip to content
-MGTAssign
-Assignment-Manager
-Repository navigation
-Code
-Issues
-Pull requests
-Actions
-Projects
-Security and quality
-Insights
-Settings
-Files
-Go to file
-t
-T
-firebase.js
-index.html
-login.html
-login.js
-script.js
-style.css
-Assignment-Manager
-/
-script.js
-in
-main
+console.log("SCRIPT LOADED");
 
-Edit
-
-Preview
-Indent mode
-
-Spaces
-Indent size
-
-2
-Line wrap mode
-
-No wrap
-Editing script.js file contents
-  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
- 11
- 12
- 13
- 14
- 15
- 16
- 17
- 18
- 19
- 20
- 21
- 22
- 23
- 24
- 25
- 26
- 27
- 28
- 29
- 30
- 31
- 32
- 33
- 34
- 35
- 36
 const form = document.getElementById("assignmentForm");
 const list = document.getElementById("assignmentList");
 const authStatus = document.getElementById("authStatus");
@@ -82,7 +7,7 @@ const guestMessage = document.getElementById("guestMessage");
 
 let currentUser = null;
 
-// 🔐 AUTH STATE (FORCE FIX + DEBUG)
+// 🔐 AUTH STATE
 auth.onAuthStateChanged((user) => {
   console.log("AUTH STATE:", user);
 
@@ -92,24 +17,104 @@ auth.onAuthStateChanged((user) => {
   const guestMessage = document.getElementById("guestMessage");
 
   if (!form || !guestMessage) {
-    console.error("Missing HTML elements (form or guestMessage)");
+    console.error("Missing form or guestMessage element");
     return;
   }
 
-  // 🔥 FORCE HIDE EVERYTHING FIRST (prevents stuck UI bug)
-  form.style.setProperty("display", "none", "important");
-  guestMessage.style.setProperty("display", "none", "important");
+  // 🔥 RESET UI FIRST
+  form.style.display = "none";
+  guestMessage.style.display = "none";
 
   if (user) {
     authStatus.innerText = "Logged in as: " + user.email;
 
-    form.style.setProperty("display", "block", "important");
+    form.style.display = "block";
   } else {
     authStatus.innerText = "Viewing as guest";
 
-    guestMessage.style.setProperty("display", "block", "important");
+    guestMessage.style.display = "block";
   }
 
   loadAssignments();
-Use Control + Shift + m to toggle the tab key moving focus. Alternatively, use esc then tab to move to the next interactive element on the page.
- 
+});
+
+// 📥 LOAD ASSIGNMENTS
+function loadAssignments() {
+  db.collection("assignments")
+    .orderBy("dueDate")
+    .onSnapshot((snapshot) => {
+
+      list.innerHTML = "";
+
+      snapshot.forEach((doc) => {
+        const a = doc.data();
+        const id = doc.id;
+
+        list.innerHTML += `
+          <tr>
+            <td>${a.title}</td>
+            <td>${a.instructor}</td>
+            <td>${a.dateGiven}</td>
+            <td>${a.dueDate}</td>
+
+            <td>
+              ${a.fileName
+                ? `<a href="${a.fileData}" download="${a.fileName}">Download</a>`
+                : "No file"}
+            </td>
+
+            <td>
+              ${currentUser
+                ? `<button onclick="deleteAssignment('${id}')">Delete</button>`
+                : ""}
+            </td>
+          </tr>
+        `;
+      });
+    });
+}
+
+// ➕ ADD ASSIGNMENT
+form.addEventListener("submit", (e) => {
+  e.preventDefault();
+
+  if (!currentUser) {
+    alert("You must be logged in.");
+    return;
+  }
+
+  const fileInput = document.getElementById("fileUpload");
+  const file = fileInput.files[0];
+
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = () => save(file.name, reader.result);
+    reader.readAsDataURL(file);
+  } else {
+    save(null, null);
+  }
+});
+
+// 💾 SAVE
+function save(fileName, fileData) {
+  db.collection("assignments").add({
+    title: document.getElementById("title").value,
+    instructor: document.getElementById("instructor").value,
+    dateGiven: document.getElementById("dateGiven").value,
+    dueDate: document.getElementById("dueDate").value,
+    fileName,
+    fileData
+  });
+
+  form.reset();
+}
+
+// ❌ DELETE
+function deleteAssignment(id) {
+  db.collection("assignments").doc(id).delete();
+}
+
+// 🚪 LOGOUT
+function logout() {
+  auth.signOut();
+}
